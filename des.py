@@ -161,20 +161,6 @@ class DES:
         if len(blocks[-1]) < 64:
             blocks[-1] = self.__add_pad_bits(blocks[-1])
         return blocks
-    # Realiza permutação com base na ip_table
-    def __initial_permutation(self, block):
-        
-        permuted_block = ''.join(block[i-1] for i in self.__ip_table)
-        return permuted_block
-    
-    def __split_block(self, block):
-        left_half = block[:32]
-        right_half = block[32:]
-        return left_half, right_half
-    
-    def __expand_half(self, half_block):
-        expanded_half = ''.join(half_block[i-1] for i in self.__e_box_table)
-        return expanded_half
 
     def __generate_subkeys(self):
         if self.__key is None:
@@ -197,17 +183,92 @@ class DES:
             subkeys.append(subkey)        
         return subkeys
     
-    # TODO 
-    def encrypt(self, message):
-        blocks = self.__preprocess_message(message)
+    
+    # Realiza permutação com base na ip_table
+    def __initial_permutation(self, block):
+        
+        permuted_block = ''.join(block[i-1] for i in self.__ip_table)
+        return permuted_block
+    
+    def __split_block(self, block):
+        left_half = block[:32]
+        right_half = block[32:]
+        return left_half, right_half
+    
+    def __expand_half(self, half_block):
+        expanded_half = ''.join(half_block[i-1] for i in self.__e_box_table)
+        return expanded_half
+    
+    def __substitute(self, block):
+        substituted = ''
+        for i in range(8):
+            segment = block[i*6:(i+1)*6]
+            row = int(segment[0] + segment[-1], 2)
+            col = int(segment[1:5], 2)
+            substituted += f'{self.__s_boxes[i][row][col]:04b}'
+        return substituted
+
+    def __feistel_round(self, left, right, subkey):
+        # Expande a metade direita
+        expanded_right = self.__expand_half(right)
+        # XOR com a subchave
+        xored = ''.join('1' if expanded_right[i] != subkey[i] else '0' for i in range(48))
+        # Substituição com as S-boxes
+        substituted = self.__substitute(xored)
+        # Permutação P
+        permuted = ''.join(substituted[i-1] for i in self.__p_box_table)
+        # XOR com a metade esquerda
+        new_right = ''.join('1' if permuted[i] != left[i] else '0' for i in range(32))
+        return right, new_right
+    
+    def __inverse_initial_permutation(self, block):
+        permuted_block = ''.join(block[i-1] for i in self.__ip_inverse_table)
+        return permuted_block 
+    
+    def __bin_to_ascii(self, binary_str):
+        ascii_str = ''.join([chr(int(binary_str[i:i+8], 2)) for i in range(0, len(binary_str), 8)])
+        return ascii_str
+
+    def __bin_to_hex(self, binary_str):
+        # Convertendo a string binária para inteiro
+        decimal_value = int(binary_str, 2)
+        # Convertendo o inteiro para hexadecimal, removendo o prefixo '0x'
+        hex_value = hex(decimal_value)[2:]
+        # Garantindo que a saída seja em letras minúsculas e sem o prefixo '0x'
+        return hex_value.zfill(len(binary_str) // 4)  # Cada 4 bits são 1 dígito hexadecimal
+    
+    def __hex_to_bin(self, hex_str):
+        # Convertendo a string hexadecimal para inteiro
+        decimal_value = int(hex_str, 16)
+
+        # Convertendo o inteiro para binário, removendo o prefixo '0b'
+        bin_value = bin(decimal_value)[2:]
+
+        # Garantindo que o número de bits seja múltiplo de 4 (ou seja, 1 dígito hexadecimal = 4 bits)
+        return bin_value.zfill(len(hex_str) * 4)
+
+    def encrypt(self, plaintext):
+        blocks = self.__preprocess_message(plaintext)
         subkeys = self.__generate_subkeys()
-        pass
+        ciphertext = ''
+        for block in blocks:
+            block = self.__initial_permutation(block)
+            left, right = self.__split_block(block)
+            for subkey in subkeys:
+                left, right = self.__feistel_round(left, right, subkey)
+            combined_block = right + left
+            ciphertext += self.__inverse_initial_permutation(combined_block)
+        cipherhex = self.__bin_to_hex(ciphertext)      
+        return cipherhex
+
         
         
     
 
-des = DES("666")
-print(des.encrypt("Eu amo lolinha"))
+des = DES("4i20")
+out = des.encrypt("Eu amo lolinha")
+print(out)
+# print(len(out))
         
 
 
