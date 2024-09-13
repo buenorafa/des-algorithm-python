@@ -261,16 +261,24 @@ class DES:
         cipherhex = self.__bin_to_hex(ciphertext)      
         return cipherhex
 
+    def decrypt(self, hex):
+        # Basta transformar o hex p binario 
+        blocks = self.__hex_to_bin(hex)
+        # Cria um array de blocos de 64bits 
+        blocks = [blocks[i:i+64] for i in range(0, len(blocks), 64)]
+        # Basta inverter a ordem da lista de subchaves 
+        subkeys = self.__generate_subkeys()[::-1]
+        # Realizar os mesmos passos de encrypt
+        decrypted_bin = ''
+        for block in blocks:
+            block = self.__initial_permutation(block)
+            left, right = self.__split_block(block)
+            for subkey in subkeys:
+                left, right = self.__feistel_round(left, right, subkey)
+            combined_block = right + left
+            decrypted_bin += self.__inverse_initial_permutation(combined_block)
+        decrypted_text = self.__bin_to_ascii(decrypted_bin)      
+        return decrypted_text
         
-        
-    
-
-des = DES("4i20")
-out = des.encrypt("Eu amo lolinha")
-print(out)
-# print(len(out))
-        
-
-
 
 
