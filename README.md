@@ -244,35 +244,3 @@ print(f"Mensagem descriptografada: {decrypted_message}")
 Mensagem criptografada: a6f3c1d8e5b3c6a1  # Exemplo de texto criptografado em hexadecimal
 Mensagem descriptografada: Mensagem secreta
 ```
-
-Aqui está uma pequena demonstração de como utilizar a classe **`DES`** para criptografar e descriptografar uma mensagem, utilizando uma chave fornecida pelo usuário.
-
-### Demonstração: Criptografia e Descriptografia com a Classe DES
-
-```python
-# Importa a classe DES
-from des import DES
-
-# Passo 1: Criar uma instância da classe DES com uma chave
-# A chave deve ser uma string de no máximo 8 caracteres (64 bits)
-key = "minha123"  # Exemplo de chave
-des = DES(key)  # Instancia o DES com a chave
-
-# Passo 2: Definir a mensagem que será criptografada
-plaintext = "Mensagem secreta"
-
-# Passo 3: Criptografar a mensagem
-encrypted_message = des.encrypt(plaintext)
-print(f"Mensagem criptografada: {encrypted_message}")
-
-# Passo 4: Descriptografar a mensagem
-decrypted_message = des.decrypt(encrypted_message)
-print(f"Mensagem descriptografada: {decrypted_message}")
-```
-
-### Saída Esperada:
-
-```bash
-Mensagem criptografada: a6f3c1d8e5b3c6a1  # Exemplo de texto criptografado em hexadecimal
-Mensagem descriptografada: Mensagem secreta
-```
